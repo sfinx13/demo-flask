@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import sqlite3
 
 app = Flask(__name__)
@@ -15,18 +15,19 @@ def index():
     conn.close()
     return render_template('index.html', users=users)
 
-def init_db():
-    conn = get_db_connection()
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS user (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE
-        )
-    ''')
-    conn.commit()
-    conn.close()
+
+@app.route('/new', methods=["GET", "POST"])
+def new():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        conn = get_db_connection()
+        conn.execute('INSERT into user(name, email) VALUES(?, ?)', (name, email))
+        conn.commit()
+
+    return render_template('new.html')
+
 
 if __name__ == '__main__':
-    init_db()
+    # init_db()
     app.run(debug=True)
